@@ -87,18 +87,21 @@ def unnormalize_to_zero_to_one(t):
 # small helper modules
 
 def Upsample(dim, dim_out = None):
+    """Nearest neighbor interpolation"""
     return nn.Sequential(
         nn.Upsample(scale_factor = 2, mode = 'nearest'),
         nn.Conv2d(dim, default(dim_out, dim), 3, padding = 1)
     )
 
 def Downsample(dim, dim_out = None):
+    """Downsample feature maps with size CXHxW to Cx(1/2H)x(1/2W)"""
     return nn.Sequential(
         Rearrange('b c (h p1) (w p2) -> b (c p1 p2) h w', p1 = 2, p2 = 2),
         nn.Conv2d(dim * 4, default(dim_out, dim), 1)
     )
 
 class RMSNorm(nn.Module):
+    """Root Mean Square Layer Normalization"""
     def __init__(self, dim):
         super().__init__()
         self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
