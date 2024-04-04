@@ -109,7 +109,7 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         return F.normalize(x, dim = 1) * self.g * (x.shape[1] ** 0.5)
 
-# sinusoidal positional embeds
+# positional embedding
 
 class SinusoidalPosEmb(nn.Module):
     def __init__(self, dim, theta = 10000):
@@ -155,7 +155,7 @@ class Block(nn.Module):
     def forward(self, x, scale_shift = None):
         x = self.proj(x)
         x = self.norm(x)
-
+        #====== TODO ======#
         if exists(scale_shift):
             scale, shift = scale_shift
             x = x * (scale + 1) + shift
@@ -164,6 +164,7 @@ class Block(nn.Module):
         return x
 
 class ResnetBlock(nn.Module):
+    #====== TODO ======#
     def __init__(self, dim, dim_out, *, time_emb_dim = None, groups = 8):
         super().__init__()
         self.mlp = nn.Sequential(
@@ -203,7 +204,7 @@ class LinearAttention(nn.Module):
         hidden_dim = dim_head * heads
 
         self.norm = RMSNorm(dim)
-
+        #====== TODO ======#
         self.mem_kv = nn.Parameter(torch.randn(2, heads, dim_head, num_mem_kv))
         self.to_qkv = nn.Conv2d(dim, hidden_dim * 3, 1, bias = False)
 
@@ -221,6 +222,7 @@ class LinearAttention(nn.Module):
         q, k, v = map(lambda t: rearrange(t, 'b (h c) x y -> b h c (x y)', h = self.heads), qkv)
 
         mk, mv = map(lambda t: repeat(t, 'h c n -> b h c n', b = b), self.mem_kv)
+        # concatenate mk to k, mv to v
         k, v = map(partial(torch.cat, dim = -1), ((mk, k), (mv, v)))
 
         q = q.softmax(dim = -2)
